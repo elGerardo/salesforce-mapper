@@ -1,0 +1,17 @@
+input,
+select,
+textarea {
+    @apply border-2 border-secondary bg-white px-2 py-1 rounded
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+    @apply bg-gray-100
+}
+
+input:focus,
+select:focus,
+textarea {
+    @apply outline-0
+}

@@ -1,0 +1,19 @@
+.btn-primary {
+    @apply text-white bg-primary rounded-sm
+}
+
+.btn-primary:hover {
+    @apply bg-dark
+}
+
+.btn-secondary {
+    @apply text-black border-2 border-secondary bg-white rounded
+}
+
+.btn-secondary:hover {
+    @apply bg-secondary
+}
+
+.btn-disabled {
+    @apply text-white bg-secondary border-2 border-secondary rounded-sm
+}
