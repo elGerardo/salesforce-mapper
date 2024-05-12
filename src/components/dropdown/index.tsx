@@ -3,15 +3,14 @@ import { Fragment, useState } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 
 export default function DropDown({
-  data = [{ label: "Options", value: null, id: "" }],
+  data = [{ label: "Options", value: null }],
   onChange,
   className,
   itemsClassName,
   itemClassName,
   label,
-  defaultValue,
 }: {
-  data?: Array<{ value: string | null; label: string; id: string }>;
+  data?: Array<{ value: string | null; label: string; }>;
   onChange?: (event: any) => void;
   className?: string;
   itemsClassName?: string;
@@ -19,12 +18,8 @@ export default function DropDown({
   label?: string;
   defaultValue?: string;
 }) {
-  let defaultIndex = 0;
-  if (defaultValue != null) {
-    defaultIndex = data.findIndex((row) => row.id === defaultValue);
-  }
 
-  const [selected, setSelected] = useState(data[defaultIndex]);
+  const [selected, setSelected] = useState(data[0]);
   const handleOnChangeSelected = (data: any) => {
     setSelected(data);
     if (onChange) onChange(data);
@@ -39,7 +34,7 @@ export default function DropDown({
       >
         <div className="relative">
           <Listbox.Button
-            className={`relative w-full cursor-pointer rounded-lg bg-white py-2 pl-3 pr-10 text-left border-2 !border-c-gray-200`}
+            className={`relative w-full cursor-pointer rounded bg-white pl-3 pr-10 text-left border-2 !border-secondary`}
           >
             <span
               className={`block truncate px-2 py-1 rounded-md ${itemClassName}`}

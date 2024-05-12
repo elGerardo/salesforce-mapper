@@ -1,23 +1,18 @@
-"use client";
 import { JsonViewer } from "@textea/json-viewer";
 import Input from "./components/input";
-import { useEffect, useState } from "react";
-import Get from "./components/crud/get";
+import { useState } from "react";
 import Find from "./components/crud/find";
 import Login from "./components/login";
 import SalesforceMapperService from "./services/SalesforceMapperService";
 import FieldList from "./components/fieldList";
 import Button from "./components/button";
+import Disclosure from "./components/disclosure";
+import { Loader } from "./components/loader";
 
 const RADIOS: Array<{
   label: string;
   id: string;
-  value:
-    | "get_option"
-    | "find_option"
-    | "create_option"
-    | "update_option"
-    | "delete_option";
+  value: "get_option" | "find_option";
 }> = [
   {
     label: "Get",
@@ -29,127 +24,233 @@ const RADIOS: Array<{
     id: "find_radio",
     value: "find_option",
   },
-  /*
-  {
-    label: "Create",
-    id: "create_radio",
-    value: "create_option",
-  },
-  {
-    label: "Update",
-    id: "update_radio",
-    value: "update_option",
-  },
-  {
-    label: "Delete",
-    id: "delete_radio",
-    value: "delete_option",
-  },
-  */
 ];
 
 function App() {
-  const [crudOption, setCrudOption] = useState<
-    | "get_option"
-    | "find_option"
-    | "create_option"
-    | "update_option"
-    | "delete_option"
-  >("get_option");
-  const [useOption, setUseOption] = useState("use_query");
-  const [sobject, setSobject] = useState("use_query");
-  const [instanceURL, setInstanceURL] = useState();
-  const [accessToken, setAccessToken] = useState();
+  const [crudOption, setCrudOption] = useState<"get_option" | "find_option">(
+    "get_option"
+  );
+
+  const [sobject, setSobject] = useState("");
+  const [instanceURL, setInstanceURL] = useState("");
+  const [accessToken, setAccessToken] = useState("");
   const [fields, setFields] = useState([]);
   const [selectedFields, setSelectedFields] = useState<Array<string>>([]);
-  const [jsonObject, setJsonObject] = useState({})
-  const [limit, setLimit] = useState("25")
-  const [offset, setOffset] = useState("1")
+  const [jsonObject, setJsonObject] = useState({});
+  const [limit, setLimit] = useState("25");
+  const [offset, setOffset] = useState("1");
+  const [whereField, setWhereField] = useState("");
+  const [whereValue, setWhereValue] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [loginIsOpen, setLoginIsOpen] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [sobjectError, setSobjectError] = useState("");
+  const [goError, setGoError] = useState("");
+  const [whereConditional, setWhereConditional] = useState<
+    "=" | "!=" | "like" | "between" | "" | "is_false" | "is_true"
+  >("=");
 
   const handleOnLogin = async (data: object) => {
-    const { response } = await SalesforceMapperService.login(data);
-    setInstanceURL(response.instance_url);
-    setAccessToken(response.access_token);
+    setIsLoading(true);
+    const { response, status } = await SalesforceMapperService.login(data);
+
+    if (status === 201) {
+      setLoginError("");
+      setInstanceURL(response.instance_url);
+      setAccessToken(response.access_token);
+      setLoginIsOpen(false);
+    } else {
+      setLoginError(
+        "Login failed, please check your credentials or your org connected app"
+      );
+    }
+    setIsLoading(false);
   };
 
   const handleOnChangeSobject = async (value: any) => {
-    const { response } = await SalesforceMapperService.describe(
+    setIsLoading(true);
+    const { response, status } = await SalesforceMapperService.describe(
       value,
       instanceURL,
       accessToken
     );
-    setFields(response);
-    setSobject(value)
+
+    if (status === 200) {
+      setSobjectError("");
+      setFields(response);
+      setSobject(value);
+    } else {
+      setSobjectError(`Sobject in ${instanceURL} does not exist`);
+    }
+    setIsLoading(false);
   };
 
   const OnClickItem = (value: string) => {
     if (!selectedFields.includes(value)) {
       setSelectedFields([...selectedFields, value]);
     } else {
-      setSelectedFields(selectedFields.filter(item => item !== value));
+      setSelectedFields(selectedFields.filter((item) => item !== value));
     }
   };
 
   const handleOnGo = async () => {
-   const { response } =  await SalesforceMapperService.get(sobject, instanceURL, accessToken, { fields: selectedFields, limit, offset})
-    setJsonObject(response)
-  }
+    setIsLoading(true);
+    let response;
+    let status = 200;
+    if (crudOption === "get_option") {
+      response = await SalesforceMapperService.get(
+        sobject,
+        instanceURL,
+        accessToken,
+        { fields: selectedFields, limit, offset }
+      );
+      status = response.status;
+    }
 
-  useEffect(() => {}, [selectedFields])
+    if (crudOption === "find_option") {
+      let conditional = whereConditional;
+      if (conditional === "is_false") conditional = "=";
+      if (conditional === "is_true") conditional = "=";
+
+      response = await SalesforceMapperService.find(
+        sobject,
+        instanceURL,
+        accessToken,
+        {
+          fields: selectedFields,
+          limit,
+          offset,
+          where_conditional: conditional,
+          where_field: whereField,
+          where_value: whereValue,
+        }
+      );
+      status = response.status;
+    }
+
+    if (status === 200) {
+      setGoError("");
+      setJsonObject(response?.response);
+    } else {
+      setGoError("Server Error");
+    }
+    setIsLoading(false);
+  };
 
   return (
     <main className="w-9/12 m-auto ">
-      <Login onSubmit={(data: object) => handleOnLogin(data)} />
+      <h1 className="mt-2 text-xl font-bold">Salesforce Mapper</h1>
+      {isLoading && <Loader />}
+
+      <Disclosure
+        isOpen={loginIsOpen}
+        onChangeIsOpen={(value: boolean) => setLoginIsOpen(value)}
+        title="Login to Salesforce"
+      >
+        <Login onSubmit={(data: object) => handleOnLogin(data)} />
+      </Disclosure>
+      <p className="text-red-600">{loginError}</p>
+      {instanceURL !== "" && (
+        <p>
+          Logged in with <b>{instanceURL}</b>
+        </p>
+      )}
       <div className="flex mt-5">
-        {RADIOS.map((item) => {
-          return (
-            <Input
-              type="radio"
-              label={item.label}
-              containerClassName="flex mr-5"
-              className="ml-1"
-              id={item.id}
-              name="crud_option"
-              value={item.value}
-              checked={crudOption === item.value}
-              onChange={() => setCrudOption(item.value)}
-            />
-          );
-        })}
+        {instanceURL !== "" &&
+          accessToken !== "" &&
+          RADIOS.map((item) => {
+            return (
+              <Input
+                type="radio"
+                label={item.label}
+                containerClassName="flex mr-5"
+                className="ml-1"
+                id={item.id}
+                name="crud_option"
+                value={item.value}
+                checked={crudOption === item.value}
+                onChange={() => setCrudOption(item.value)}
+              />
+            );
+          })}
       </div>
-      <div>
-        <Input
-          label="Sobject"
-          id="sobject"
-          containerClassName="w-full"
-          className="w-full p-1"
-          placeholder="Salesforce Sobject"
-          onChange={(value) => handleOnChangeSobject(value)}
-          onChangeDelay={2000}
-        />
-        {crudOption === "get_option" && (
-          <Get
-            checkedOption={useOption}
-            checkedHandler={(value: string) => setUseOption(value)}
+      {instanceURL !== "" && accessToken !== "" && (
+        <div>
+          <Input
+            label="Sobject"
+            id="sobject"
+            containerClassName="w-full my-4"
+            className="w-full p-1"
+            placeholder="Salesforce Sobject"
+            onChange={(value) => handleOnChangeSobject(value)}
+            onChangeDelay={1500}
+            disabled={instanceURL === "" || accessToken === ""}
           />
+          <p className="text-red-600">{sobjectError}</p>
+          {crudOption === "find_option" && fields.length > 0 && (
+            <Find
+              field={whereField}
+              fields={selectedFields}
+              conditional={whereConditional}
+              value={whereValue}
+              onChangeConditional={(e: any) => setWhereConditional(e)}
+              onChangeField={(e) => setWhereField(e)}
+              onChangeValue={(e) => setWhereValue(e)}
+            />
+          )}
+          {sobject !== "" && fields.length > 0 && (
+            <FieldList
+              fields={fields}
+              selectedFields={selectedFields}
+              onClick={(value: string) => OnClickItem(value)}
+              onChangeLimit={(value: string) => setLimit(value)}
+              onChangeOffset={(value: string) => setOffset(value)}
+            />
+          )}
+        </div>
+      )}
+      {instanceURL !== "" &&
+        accessToken !== "" &&
+        crudOption === "get_option" && (
+          <Button
+            className="py-1 px-8"
+            onClick={() => handleOnGo()}
+            disabled={
+              selectedFields.length === 0 || sobject === "" ? true : false
+            }
+          >
+            Go!
+          </Button>
         )}
-        {crudOption === "find_option" && <Find />}
-        <FieldList
-          fields={fields}
-          selectedFields={selectedFields}
-          onClick={(value: string) => OnClickItem(value)}
-          onChangeLimit={(value: string) => setLimit(value)}
-          onChangeOffset={(value: string) => setOffset(value)}
+      {instanceURL !== "" &&
+        accessToken !== "" &&
+        crudOption === "find_option" && (
+          <Button
+            className="py-1 px-8"
+            onClick={() => handleOnGo()}
+            disabled={
+              selectedFields.length === 0 ||
+              sobject === "" ||
+              whereConditional === "" ||
+              whereField === "" ||
+              whereValue === ""
+                ? true
+                : false
+            }
+          >
+            Go!
+          </Button>
+        )}
+      <p className="text-red-600">{goError}</p>
+      {instanceURL !== "" && accessToken !== "" && (
+        <JsonViewer
+          className="text-base my-8"
+          rootName={false}
+          displayDataTypes={false}
+          displaySize={false}
+          value={jsonObject}
         />
-      </div>
-        <Button onClick={() => handleOnGo()} disabled={selectedFields.length === 0 ? true : false}>Go!</Button>
-      <JsonViewer
-        className="text-base"
-        rootName={false}
-        displayDataTypes={false}
-        displaySize={false}
-        value={jsonObject}
-      />
+      )}
     </main>
   );
 }

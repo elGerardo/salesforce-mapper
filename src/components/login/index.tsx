@@ -38,6 +38,7 @@ export default function Login({
           className="w-full p-1"
           placeholder="Organization URL"
           inputRef={org_url}
+          required
         />
         <Input
           label="Client Id"
@@ -46,6 +47,7 @@ export default function Login({
           className="w-full p-1"
           placeholder="Client Id"
           inputRef={client_id}
+          required
         />
         <Input
           label="Client Secret"
@@ -54,6 +56,7 @@ export default function Login({
           className="w-full p-1"
           placeholder="Client Secret"
           inputRef={client_secret}
+          required
         />
         <Input
           label="Username"
@@ -62,6 +65,7 @@ export default function Login({
           className="w-full p-1"
           placeholder="Username"
           inputRef={username}
+          required
         />
         <Input
           label="Password"
@@ -70,8 +74,9 @@ export default function Login({
           className="w-full p-1"
           placeholder="Password"
           inputRef={password}
+          required
         />
-        <div className="w-5/12 mr-4 flex justify-center items-center pt-7">
+        <div className="w-5/12 mr-4 flex justify-center items-center pt-6">
           <Button className="px-8 py-2">Login</Button>
         </div>
       </div>
