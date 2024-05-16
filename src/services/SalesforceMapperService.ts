@@ -135,7 +135,6 @@ export default class SalesforceMapperService {
   }
 
   public static async query(
-    sobject: string,
     instance_url: string | undefined,
     access_token: string | undefined,
     query: string
@@ -146,7 +145,7 @@ export default class SalesforceMapperService {
       .get(
         `${
           import.meta.env.VITE_API_BASE_URL
-        }/salesforce/query/${sobject}?query=${query}`,
+        }/salesforce/query?query=${query}`,
         {
           headers: {
             "Content-Type": "application/json",

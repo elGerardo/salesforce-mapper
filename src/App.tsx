@@ -142,7 +142,6 @@ function App() {
     if (crudOption === "query_option") {
 
       response = await SalesforceMapperService.query(
-        sobject,
         instanceURL,
         accessToken,
         query
