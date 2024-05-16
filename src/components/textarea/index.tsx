@@ -20,7 +20,7 @@ export default function Textarea({
     onChange?: (event: any) => void;
   }) {
     const handleOnChange = (data: React.ChangeEvent<HTMLInputElement>) => {
-      if (onChange) onChange(data);
+      if (onChange) onChange(data.target.value);
     };
   
     const _props = {

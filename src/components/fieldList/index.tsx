@@ -3,7 +3,7 @@ import Input from "../input";
 import Button from "../button";
 
 export default function FieldList({
-  fields,
+  fields = [],
   selectedFields,
   onClick,
   onChangeLimit,
@@ -17,7 +17,7 @@ export default function FieldList({
 }) {
   const [search, setSearch] = useState("");
   const [limit, setLimit] = useState("25");
-  const [offset, setOffset] = useState("1");
+  const [offset, setOffset] = useState("0");
   const [limitShowing, setLimigShowing] = useState(25);
 
   return (
@@ -27,7 +27,7 @@ export default function FieldList({
           type="text"
           defaultValue={search}
           onChange={(e: string) => setSearch(e)}
-          placeholder="Search..."
+          placeholder="Search in retrieved fields..."
           className="px-2 py-1 w-full"
           containerClassName="w-1/3"
           label="Search"
@@ -57,7 +57,7 @@ export default function FieldList({
           label="Offset"
         />
       </div>
-      <p className="my-4">Retrive Fields</p>
+      <p className="my-4">Retrived Fields</p>
       <div className="flex flex-wrap">
         {fields.map(({ label, name }, index) => {
           if (label.includes(search) && name !== "Id")
@@ -78,8 +78,24 @@ export default function FieldList({
         })}
       </div>
       <div className="flex justify-end">
-      {fields.length > limitShowing && search === "" && <Button onClick={() => setLimigShowing(limitShowing + 25)} kind="secondary" className="px-4 py-1">Show More (+25)</Button>}
-      {limitShowing > 25 && search === "" && <Button onClick={() => setLimigShowing(limitShowing - 25)} kind="secondary" className="ml-4 px-4 py-1">Show Less (-25)</Button>}
+        {limitShowing > 25 && search === "" && (
+          <Button
+            onClick={() => setLimigShowing(limitShowing - 25)}
+            kind="secondary"
+            className="ml-4 px-4 py-1"
+          >
+            Show Less (-25)
+          </Button>
+        )}
+        {fields.length > limitShowing && search === "" && (
+          <Button
+            onClick={() => setLimigShowing(limitShowing + 25)}
+            kind="secondary"
+            className="px-4 py-1"
+          >
+            Show More (+25)
+          </Button>
+        )}
       </div>
     </>
   );

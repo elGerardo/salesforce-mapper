@@ -10,7 +10,6 @@ export default function Find({
   onChangeValue,
   conditional
 }: {
-  field: string;
   fields: Array<string>;
   conditional: string;
   value: string;
@@ -18,11 +17,10 @@ export default function Find({
   onChangeConditional: (value: string) => void;
   onChangeValue: (value: string) => void;
 }) {
-
   return (
     <div className="flex my-4">
       <Combobox
-        data={fields}
+        data={["Id", ...fields]}
         className="w-1/3"
         label="Choose the field"
         onChange={(value: string) => onChangeField(value)}

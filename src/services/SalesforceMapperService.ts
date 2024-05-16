@@ -2,7 +2,6 @@ import axios from "axios";
 
 export default class SalesforceMapperService {
   public static async login(data: object) {
-    console.log(data);
     let response: any = {};
     let status: any = 201;
 
@@ -13,7 +12,6 @@ export default class SalesforceMapperService {
         },
       })
       .catch((error) => {
-        console.log(error);
         response = error.response.data;
         status = error.response.status;
       })
@@ -44,7 +42,6 @@ export default class SalesforceMapperService {
         }
       )
       .catch((error) => {
-        console.log(error);
         response = error.response.data;
         status = error.response.status;
       })
@@ -80,7 +77,6 @@ export default class SalesforceMapperService {
         }
       )
       .catch((error) => {
-        console.log(error);
         response = error.response.data;
         status = error.response.status;
       })
@@ -127,7 +123,39 @@ export default class SalesforceMapperService {
         }
       )
       .catch((error) => {
-        console.log(error);
+        response = error.response.data;
+        status = error.response.status;
+      })
+      .then((callout) => {
+        response = callout?.data;
+        status = callout?.status;
+      });
+
+    return { response, status };
+  }
+
+  public static async query(
+    sobject: string,
+    instance_url: string | undefined,
+    access_token: string | undefined,
+    query: string
+  ) {
+    let response: any = {};
+    let status: any = 200;
+    await axios
+      .get(
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/salesforce/query/${sobject}?query=${query}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "X-INSTANCE-URL": instance_url,
+            "X-ACCESS-TOKEN": access_token,
+          },
+        }
+      )
+      .catch((error) => {
         response = error.response.data;
         status = error.response.status;
       })
